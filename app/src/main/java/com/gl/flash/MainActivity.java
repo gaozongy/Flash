@@ -28,7 +28,6 @@ public class MainActivity extends Activity implements AccessibilityManager.Acces
         pluginStatusText = findViewById(R.id.layout_control_accessibility_text);
         pluginStatusIcon = findViewById(R.id.layout_control_accessibility_icon);
 
-        //监听AccessibilityService 变化
         accessibilityManager = (AccessibilityManager) getSystemService(Context.ACCESSIBILITY_SERVICE);
         accessibilityManager.addAccessibilityStateChangeListener(this);
         updateServiceStatus();
@@ -42,7 +41,6 @@ public class MainActivity extends Activity implements AccessibilityManager.Acces
 
     @Override
     protected void onDestroy() {
-        //移除监听服务
         accessibilityManager.removeAccessibilityStateChangeListener(this);
         super.onDestroy();
     }
@@ -59,22 +57,11 @@ public class MainActivity extends Activity implements AccessibilityManager.Acces
 
     }
 
-    public void openSettings(View view) {
-        Intent settingsIntent = new Intent(this, SettingsActivity.class);
-        settingsIntent.putExtra("title", getString(R.string.preference));
-        settingsIntent.putExtra("frag_id", "GeneralSettingsFragment");
-        startActivity(settingsIntent);
-    }
-
-
     @Override
     public void onAccessibilityStateChanged(boolean enabled) {
         updateServiceStatus();
     }
 
-    /**
-     * 更新当前 FlashService 显示状态
-     */
     private void updateServiceStatus() {
         if (isServiceEnabled()) {
             pluginStatusText.setText(R.string.service_off);
@@ -85,9 +72,6 @@ public class MainActivity extends Activity implements AccessibilityManager.Acces
         }
     }
 
-    /**
-     * 获取 FlashService 是否启用状态
-     */
     private boolean isServiceEnabled() {
         List<AccessibilityServiceInfo> accessibilityServices =
                 accessibilityManager.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_GENERIC);

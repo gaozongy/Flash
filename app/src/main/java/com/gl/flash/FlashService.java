@@ -3,33 +3,37 @@ package com.gl.flash;
 import android.accessibilityservice.AccessibilityService;
 import android.content.SharedPreferences;
 import android.graphics.Rect;
+import android.text.TextUtils;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
 import java.util.List;
 
 
-public class FlashService extends AccessibilityService implements SharedPreferences.OnSharedPreferenceChangeListener {
+public class FlashService extends AccessibilityService {
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
         AccessibilityNodeInfo rootNodeInfo = getRootInActiveWindow();
         if (rootNodeInfo == null) return;
 
-        AccessibilityNodeInfo node1 = this.getTheLastNode(rootNodeInfo, "微信红包");
+        AccessibilityNodeInfo node1 = getTheLastNode(rootNodeInfo, "红包");
         if (node1 != null) {
             node1.getParent().performAction(AccessibilityNodeInfo.ACTION_CLICK);
             return;
         }
 
-        new android.os.Handler().postDelayed(
-                new Runnable() {
-                    public void run() {
-                        AccessibilityNodeInfo rootNodeInfo = getRootInActiveWindow();
-                        AccessibilityNodeInfo node2 = findOpenButton(rootNodeInfo);
-                        if (node2 != null) {
-                            node2.performAction(AccessibilityNodeInfo.ACTION_CLICK);
-                        }
+        AccessibilityNodeInfo node2 = getTheLastNode(rootNodeInfo, "看看大家的手气");
+        if (node2 != null) {
+            node2.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+            return;
+        }
+
+        new android.os.Handler().postDelayed(() -> {
+                    AccessibilityNodeInfo rootNodeInfo1 = getRootInActiveWindow();
+                    AccessibilityNodeInfo node3 = findOpenButton(rootNodeInfo1);
+                    if (node3 != null) {
+                        node3.performAction(AccessibilityNodeInfo.ACTION_CLICK);
                     }
                 },
                 500);
@@ -46,10 +50,11 @@ public class FlashService extends AccessibilityService implements SharedPreferen
 
         //非layout元素
         if (node.getChildCount() == 0) {
-            if ("android.widget.Button".equals(node.getClassName()))
+            if (TextUtils.equals(node.getClassName(), "android.widget.Button")) {
                 return node;
-            else
+            } else {
                 return null;
+            }
         }
 
         //layout元素，遍历找button
@@ -64,7 +69,8 @@ public class FlashService extends AccessibilityService implements SharedPreferen
 
     private AccessibilityNodeInfo getTheLastNode(AccessibilityNodeInfo rootNodeInfo, String... texts) {
         int bottom = 0;
-        AccessibilityNodeInfo lastNode = null, tempNode;
+        AccessibilityNodeInfo lastNode = null;
+        AccessibilityNodeInfo tempNode;
         List<AccessibilityNodeInfo> nodes;
 
         for (String text : texts) {
@@ -84,9 +90,5 @@ public class FlashService extends AccessibilityService implements SharedPreferen
             }
         }
         return lastNode;
-    }
-
-    @Override
-    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
     }
 }
