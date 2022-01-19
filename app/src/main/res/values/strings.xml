@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Flash</string>
 
-    <string name="app_version">v5.0</string>
+    <string name="app_version">v1.0</string>
     <string name="app_description">○ 狠戳插件开关\n ○ 回到微信聊天\n ○ 坐等红包进账</string>
     <string name="preference">偏好设置</string>
     <string name="update_error">遇到一些问题,请前往GitHub手动更新喵(ฅ´ω`ฅ)</string>

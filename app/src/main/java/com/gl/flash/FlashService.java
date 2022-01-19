@@ -1,62 +1,67 @@
 package com.gl.flash;
 
 import android.accessibilityservice.AccessibilityService;
-import android.accessibilityservice.GestureDescription;
-import android.content.SharedPreferences;
-import android.graphics.Path;
 import android.graphics.Rect;
-import android.os.Build;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
-import androidx.annotation.RequiresApi;
-
+import java.util.ArrayList;
 import java.util.List;
 
 
 public class FlashService extends AccessibilityService {
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
-        AccessibilityNodeInfo rootNodeInfo = getRootInActiveWindow();
-        if (rootNodeInfo == null) return;
+        int eventType = event.getEventType();
+        Log.e("gaozy", "eventType:" + eventType);
+        if (eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED || eventType == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
+            String className = event.getClassName().toString();
+            Log.e("gaozy", "className:" + className);
 
-        AccessibilityNodeInfo node1 = getTheLastNode(rootNodeInfo, "红包");
-        if (node1 != null) {
-            node1.getParent().performAction(AccessibilityNodeInfo.ACTION_CLICK);
-            return;
+            if (TextUtils.equals(className, "com.tencent.wework.msg.controller.MessageListActivity")) {
+                findRedPackets();
+                return;
+            }
+
+            if (TextUtils.equals(className, "com.tencent.wework.enterprise.redenvelopes.controller.RedEnvelopeCollectorWithCoverActivity")) {
+                openRedPackets();
+                return;
+            }
+
+            if (TextUtils.equals(className, "com.tencent.wework.enterprise.redenvelopes.controller.RedEnvelopeDetailWithCoverActivity")) {
+                backToChatList();
+                return;
+            }
+
+            findRedPackets();
         }
+    }
 
-//        GestureDescription.Builder builder = new GestureDescription.Builder();
-//        Path path = new Path();
-//        path.moveTo((float) 700, (float) 1600);
-//        builder.addStroke(new GestureDescription.StrokeDescription(path, 1, 1));
-//        final GestureDescription build = builder.build();
-//        /**
-//         * 参数GestureDescription：翻译过来就是手势的描述，如果要实现模拟，首先要描述你的腰模拟的手势嘛
-//         * 参数GestureResultCallback：翻译过来就是手势的回调，手势模拟执行以后回调结果
-//         * 参数handler：大部分情况我们不用的话传空就可以了
-//         * 一般我们关注GestureDescription这个参数就够了，下边就重点介绍一下这个参数
-//         */
-//        dispatchGesture(build, new GestureResultCallback() {
-//            public void onCancelled(GestureDescription gestureDescription) {
-//                super.onCancelled(gestureDescription);
-//            }
-//            public void onCompleted(GestureDescription gestureDescription) {
-//                super.onCompleted(gestureDescription);
-//            }
-//        }, null);
+    private void findRedPackets() {
+        Log.e("gaozy", "findRedPackets");
+        AccessibilityNodeInfo rootNodeInfo = getRootInActiveWindow();
+        AccessibilityNodeInfo packetsNode = getTheLastNode(rootNodeInfo, "红包");
+        if (packetsNode != null && packetsNode.getText() != null && !packetsNode.getText().toString().contains("领取了")) {
+            packetsNode.getParent().performAction(AccessibilityNodeInfo.ACTION_CLICK);
+        }
+    }
 
-        new android.os.Handler().postDelayed(() -> {
-                    AccessibilityNodeInfo rootNodeInfo1 = getRootInActiveWindow();
-                    AccessibilityNodeInfo node3 = findOpenButton(rootNodeInfo1);
-                    if (node3 != null) {
-                        node3.performAction(AccessibilityNodeInfo.ACTION_CLICK);
-                    }
-                },
-                500);
+    private void openRedPackets() {
+        Log.e("gaozy", "openRedPackets");
+        AccessibilityNodeInfo rootNodeInfo = getRootInActiveWindow();
+        List<AccessibilityNodeInfo> nodeInfoList = new ArrayList<>();
+        findOpenButton(rootNodeInfo, nodeInfoList);
+        if (nodeInfoList.size() >= 2) {
+            nodeInfoList.get(nodeInfoList.size() - 2).performAction(AccessibilityNodeInfo.ACTION_CLICK);
+        }
+    }
+
+    private void backToChatList() {
+        Log.e("gaozy", "backToChatList");
+        performGlobalAction(GLOBAL_ACTION_BACK);
     }
 
     @Override
@@ -64,52 +69,43 @@ public class FlashService extends AccessibilityService {
 
     }
 
-    private AccessibilityNodeInfo findOpenButton(AccessibilityNodeInfo node) {
-        if (node == null)
+    private AccessibilityNodeInfo getTheLastNode(AccessibilityNodeInfo node, String text) {
+        if (node == null) {
             return null;
+        }
 
-        //非layout元素
+        int bottom = 0;
+        AccessibilityNodeInfo resultNode = null;
+
+        List<AccessibilityNodeInfo> nodes = node.findAccessibilityNodeInfosByText(text);
+        for (AccessibilityNodeInfo temp : nodes) {
+            if (temp == null) continue;
+            Rect bounds = new Rect();
+            temp.getBoundsInScreen(bounds);
+            if (bounds.bottom > bottom) {
+                bottom = bounds.bottom;
+                resultNode = temp;
+            }
+        }
+        return resultNode;
+    }
+
+    private void findOpenButton(AccessibilityNodeInfo node, List<AccessibilityNodeInfo> nodeInfoList) {
+        if (node == null)
+            return;
+
         if (node.getChildCount() == 0) {
             if (TextUtils.equals(node.getClassName(), "android.widget.ImageView")) {
-                node.getParent().performAction(AccessibilityNodeInfo.ACTION_CLICK);
-                return node;
+                nodeInfoList.add(node);
             } else {
-                return null;
+                return;
             }
         }
 
-        //layout元素，遍历找button
-        AccessibilityNodeInfo button;
         for (int i = 0; i < node.getChildCount(); i++) {
-            button = findOpenButton(node.getChild(i));
-            if (button != null)
-                return button;
+            findOpenButton(node.getChild(i), nodeInfoList);
         }
-        return null;
-    }
-
-    private AccessibilityNodeInfo getTheLastNode(AccessibilityNodeInfo rootNodeInfo, String... texts) {
-        int bottom = 0;
-        AccessibilityNodeInfo lastNode = null;
-        AccessibilityNodeInfo tempNode;
-        List<AccessibilityNodeInfo> nodes;
-
-        for (String text : texts) {
-            if (text == null) continue;
-
-            nodes = rootNodeInfo.findAccessibilityNodeInfosByText(text);
-
-            if (nodes != null && !nodes.isEmpty()) {
-                tempNode = nodes.get(nodes.size() - 1);
-                if (tempNode == null) return null;
-                Rect bounds = new Rect();
-                tempNode.getBoundsInScreen(bounds);
-                if (bounds.bottom > bottom) {
-                    bottom = bounds.bottom;
-                    lastNode = tempNode;
-                }
-            }
-        }
-        return lastNode;
     }
 }
+
+

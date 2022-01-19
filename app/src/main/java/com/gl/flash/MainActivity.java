@@ -30,9 +30,13 @@ public class MainActivity extends Activity implements AccessibilityManager.Acces
 
         accessibilityManager = (AccessibilityManager) getSystemService(Context.ACCESSIBILITY_SERVICE);
         accessibilityManager.addAccessibilityStateChangeListener(this);
-        updateServiceStatus();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateServiceStatus();
+    }
 
     @Override
     protected void onPause() {
@@ -47,14 +51,12 @@ public class MainActivity extends Activity implements AccessibilityManager.Acces
 
     public void openAccessibility(View view) {
         try {
-            Toast.makeText(this, getString(R.string.turn_on_toast) + pluginStatusText.getText(), Toast.LENGTH_SHORT).show();
             Intent accessibleIntent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
             startActivity(accessibleIntent);
         } catch (Exception e) {
             Toast.makeText(this, getString(R.string.turn_on_error_toast), Toast.LENGTH_LONG).show();
             e.printStackTrace();
         }
-
     }
 
     @Override
