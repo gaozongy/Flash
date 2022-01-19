@@ -21,21 +21,25 @@ public class FlashService extends AccessibilityService {
             String className = event.getClassName().toString();
             Log.e("gaozy", "className:" + className);
 
+            // 当前在聊天界面，寻找最后一个未打开的红包，并点击
             if (TextUtils.equals(className, "com.tencent.wework.msg.controller.MessageListActivity")) {
                 findRedPackets();
                 return;
             }
 
+            // 已经进入红包二级页面，点击"开"按钮
             if (TextUtils.equals(className, "com.tencent.wework.enterprise.redenvelopes.controller.RedEnvelopeCollectorWithCoverActivity")) {
                 openRedPackets();
                 return;
             }
 
+            // 红包已打开，返回聊天界面
             if (TextUtils.equals(className, "com.tencent.wework.enterprise.redenvelopes.controller.RedEnvelopeDetailWithCoverActivity")) {
                 backToChatList();
                 return;
             }
 
+            // 寻找最后一个未打开的红包，并点击（兼容处理）
             findRedPackets();
         }
     }
@@ -55,6 +59,7 @@ public class FlashService extends AccessibilityService {
         List<AccessibilityNodeInfo> nodeInfoList = new ArrayList<>();
         findOpenButton(rootNodeInfo, nodeInfoList);
         if (nodeInfoList.size() >= 2) {
+            // 倒数第二个 ImageView 为打开按钮
             nodeInfoList.get(nodeInfoList.size() - 2).performAction(AccessibilityNodeInfo.ACTION_CLICK);
         }
     }
