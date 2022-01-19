@@ -1,17 +1,32 @@
 package com.gl.flash;
 
 import android.accessibilityservice.AccessibilityService;
+import android.content.SharedPreferences;
 import android.graphics.Rect;
+import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
+
+import androidx.preference.PreferenceManager;
 
 import java.util.ArrayList;
 import java.util.List;
 
 
 public class FlashService extends AccessibilityService {
+
+    public static int delay = 0;
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        String value = sharedPreferences.getString("delay_time", "0");
+        delay = Integer.parseInt(value);
+    }
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
@@ -55,13 +70,16 @@ public class FlashService extends AccessibilityService {
 
     private void openRedPackets() {
         Log.e("gaozy", "openRedPackets");
-        AccessibilityNodeInfo rootNodeInfo = getRootInActiveWindow();
-        List<AccessibilityNodeInfo> nodeInfoList = new ArrayList<>();
-        findOpenButton(rootNodeInfo, nodeInfoList);
-        if (nodeInfoList.size() >= 2) {
-            // 倒数第二个 ImageView 为打开按钮
-            nodeInfoList.get(nodeInfoList.size() - 2).performAction(AccessibilityNodeInfo.ACTION_CLICK);
-        }
+        new Handler().postDelayed(() -> {
+                    AccessibilityNodeInfo rootNodeInfo = getRootInActiveWindow();
+                    List<AccessibilityNodeInfo> nodeInfoList = new ArrayList<>();
+                    findOpenButton(rootNodeInfo, nodeInfoList);
+                    if (nodeInfoList.size() >= 2) {
+                        // 倒数第二个 ImageView 为打开按钮
+                        nodeInfoList.get(nodeInfoList.size() - 2).performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                    }
+                },
+                delay);
     }
 
     private void backToChatList() {

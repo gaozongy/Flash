@@ -56,14 +56,14 @@
     <string name="delay_then">然后</string>
     <string name="d">延迟0秒拆开红包</string>
     <string name="todo">TODO</string>
-    <string name="title_activity_settings">SettingsActivity</string>
+    <string name="title_activity_settings">Settings</string>
 
     <!-- Preference Titles -->
-    <string name="messages_header">Messages</string>
+    <string name="basic_header">Basic Settings</string>
     <string name="sync_header">Sync</string>
 
     <!-- Messages Preferences -->
-    <string name="signature_title">Your signature</string>
+    <string name="delay_time">Delay time</string>
     <string name="reply_title">Default reply action</string>
 
     <!-- Sync Preferences -->

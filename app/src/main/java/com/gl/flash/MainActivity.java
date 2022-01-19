@@ -9,6 +9,7 @@ import android.provider.Settings;
 import android.view.View;
 import android.view.accessibility.AccessibilityManager;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -25,11 +26,16 @@ public class MainActivity extends Activity implements AccessibilityManager.Acces
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
+        ImageView settingsIv = findViewById(R.id.settings_iv);
+        LinearLayout controlAccessibilityLl = findViewById(R.id.layout_control_accessibility);
         pluginStatusText = findViewById(R.id.layout_control_accessibility_text);
         pluginStatusIcon = findViewById(R.id.layout_control_accessibility_icon);
 
         accessibilityManager = (AccessibilityManager) getSystemService(Context.ACCESSIBILITY_SERVICE);
         accessibilityManager.addAccessibilityStateChangeListener(this);
+
+        settingsIv.setOnClickListener(v -> startActivity(new Intent(this, SettingsActivity.class)));
+        controlAccessibilityLl.setOnClickListener(v -> openAccessibility());
     }
 
     @Override
@@ -49,7 +55,7 @@ public class MainActivity extends Activity implements AccessibilityManager.Acces
         super.onDestroy();
     }
 
-    public void openAccessibility(View view) {
+    public void openAccessibility() {
         try {
             Intent accessibleIntent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
             startActivity(accessibleIntent);
