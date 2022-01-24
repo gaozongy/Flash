@@ -19,6 +19,8 @@ public class FlashService extends AccessibilityService {
 
     public static int delay = 0;
 
+    private String mCurrentPage;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -31,31 +33,33 @@ public class FlashService extends AccessibilityService {
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
         int eventType = event.getEventType();
+        String className = event.getClassName().toString();
+        if (className.startsWith("com.tencent.wework")) {
+            mCurrentPage = className;
+        }
+
+        Log.e("gaozy", "----------------------------------------------------------------");
         Log.e("gaozy", "eventType:" + eventType);
-        if (eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED || eventType == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
-            String className = event.getClassName().toString();
-            Log.e("gaozy", "className:" + className);
+        Log.e("gaozy", "mCurrentPage:" + mCurrentPage);
+        Log.e("gaozy", "className:" + className);
 
-            // 当前在聊天界面，寻找最后一个未打开的红包，并点击
-            if (TextUtils.equals(className, "com.tencent.wework.msg.controller.MessageListActivity")) {
-                findRedPackets();
-                return;
-            }
+        if (eventType == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
+                && TextUtils.equals(mCurrentPage, "com.tencent.wework.msg.controller.MessageListActivity")) {
+            findRedPackets();
+            return;
+        }
 
+        if (eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
             // 已经进入红包二级页面，点击"开"按钮
-            if (TextUtils.equals(className, "com.tencent.wework.enterprise.redenvelopes.controller.RedEnvelopeCollectorWithCoverActivity")) {
+            if (TextUtils.equals(mCurrentPage, "com.tencent.wework.enterprise.redenvelopes.controller.RedEnvelopeCollectorWithCoverActivity")) {
                 openRedPackets();
                 return;
             }
 
             // 红包已打开，返回聊天界面
-            if (TextUtils.equals(className, "com.tencent.wework.enterprise.redenvelopes.controller.RedEnvelopeDetailWithCoverActivity")) {
+            if (TextUtils.equals(mCurrentPage, "com.tencent.wework.enterprise.redenvelopes.controller.RedEnvelopeDetailWithCoverActivity")) {
                 backToChatList();
-                return;
             }
-
-            // 寻找最后一个未打开的红包，并点击（兼容处理）
-            findRedPackets();
         }
     }
 
